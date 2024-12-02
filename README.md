@@ -16,6 +16,7 @@
 - Multi-user chat app with rooms and you can also send messages directly to another user *(similar to Slack)*
 - Document real-time collaboration *(similar to Google Docs)*
 - 2D-based multiplayer game where you can see players move in real time.
+- Real-time data fetching and display *(stock market graph tracker)*
 
 ## Instructions 📖
 
