@@ -1,5 +1,12 @@
 import { Navbar } from "flowbite-react";
 import { Link } from "react-router-dom";
+import type { CustomFlowbiteTheme } from "flowbite-react";
+
+const customTheme: CustomFlowbiteTheme["navbar"] = {
+  "toggle": {
+    base: "bg-transparent rounded-lg border-2 border-transparent focus:border-white p-1 md:hidden",
+  }
+};
 
 export const Header = () => {
   const handleSignout = async () => {
@@ -19,7 +26,7 @@ export const Header = () => {
   }
 
   return (
-    <Navbar className="text-white bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 md:py-4">
+    <Navbar className="text-white bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 md:py-4" theme={customTheme}>
       <Link to="/" className="self-center whitespace-nowrap text-lg sm:text-xl font-semibold">
         <span className="px-2 py-1 rounded-lg">
           Paint Party
