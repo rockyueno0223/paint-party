@@ -1,6 +1,9 @@
 import { Button } from "flowbite-react";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { FaPen } from "react-icons/fa";
+import { FaRegCircle } from "react-icons/fa";
+import { RiEraserLine } from "react-icons/ri";
 
 export const CreateCanvas = () => {
   const [searchParams] = useSearchParams();
@@ -105,47 +108,60 @@ export const CreateCanvas = () => {
       <div className="flex flex-col lg:flex-row-reverse gap-3">
         {/* Selector */}
         <div className="bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 p-px rounded-full">
-          <div className="flex flex-row lg:flex-col gap-1 bg-zinc-900 rounded-full w-full h-full py-3 px-5 lg:py-6 lg:px-4">
+          <div className="flex flex-row lg:flex-col justify-between lg:justify-start items-center gap-4 bg-zinc-900 rounded-full w-full h-full py-3 px-5 lg:py-6 lg:px-4">
 
-            {/* Line Width Selector */}
-            <Button
-              onClick={() => handleChangeWidth(2)}
-              className={lineWidth === 2 ? 'bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500' : 'dark:bg-white text-zinc-600'}
-            >
-              Thin
-            </Button>
-            <Button
-              onClick={() => handleChangeWidth(5)}
-              className={lineWidth === 5 ? 'bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500' : 'dark:bg-white text-zinc-600'}
-            >
-              Medium
-            </Button>
-            <Button
-              onClick={() => handleChangeWidth(10)}
-              className={lineWidth === 10 ? 'bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500' : 'dark:bg-white text-zinc-600'}
-            >
-              Thick
-            </Button>
+            <div className="flex flex-row lg:flex-col items-center gap-2">
+              <FaPen className="me-2 mb-0 lg:me-0 lg:mb-2" />
 
-            {/* Line Color Selector */}
-            <input
-              type="color"
-              value={lineColor}
-              onChange={(e) => {
-                setIsEraser(false); // Disable eraser when color changes
-                setLineColor(e.target.value);
-              }}
-              className="w-10 h-10 rounded border"
-            />
+              {/* Line Width Selector */}
+              <Button
+                onClick={() => handleChangeWidth(2)}
+                className={`flex items-center h-full lg:h-auto ${lineWidth === 2 ? 'bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500' : 'dark:bg-white text-zinc-600'}`}
+              >
+                <FaRegCircle
+                  size={8}
+                  color={lineWidth === 2 ? "#fff" : "#000"}
+                />
+              </Button>
+              <Button
+                onClick={() => handleChangeWidth(5)}
+                className={`flex items-center ${lineWidth === 5 ? 'bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500' : 'dark:bg-white text-zinc-600'}`}
+              >
+                <FaRegCircle
+                  size={10}
+                  color={lineWidth === 5 ? "#fff" : "#000"}
+                />
+              </Button>
+              <Button
+                onClick={() => handleChangeWidth(10)}
+                className={`flex items-center ${lineWidth === 10 ? 'bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500' : 'dark:bg-white text-zinc-600'}`}
+              >
+                <FaRegCircle
+                  size={12}
+                  color={lineWidth === 10 ? "#fff" : "#000"}
+                />
+              </Button>
+
+              {/* Line Color Selector */}
+              <input
+                type="color"
+                value={lineColor}
+                onChange={(e) => {
+                  setIsEraser(false); // Disable eraser when color changes
+                  setLineColor(e.target.value);
+                }}
+                className="w-9 h-9 lg:w-11 lg:h-11 rounded border"
+              />
+            </div>
 
             {/* Eraser */}
             <Button
               onClick={toggleEraser}
-              className={
+              className={`flex items-center ${
                 isEraser ? "dark:bg-red-500 text-white" : "dark:bg-gray-200 text-zinc-600"
-              }
+              }`}
             >
-              {isEraser ? "Eraser On" : "Eraser Off"}
+              <RiEraserLine />
             </Button>
           </div>
         </div>
