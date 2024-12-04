@@ -2,9 +2,11 @@ import { Alert, Button, Label, TextInput } from "flowbite-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { IFormData } from "@/types/formData";
+import { useUserContext } from "@/context/UserContext";
 
 export const Signin = () => {
   const navigate = useNavigate();
+  const { setUser } = useUserContext();
 
   const [formData, setFormData] = useState<IFormData>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -21,17 +23,17 @@ export const Signin = () => {
     try {
       setErrorMessage(null);
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, {
-        method: 'GET',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      console.log('data', data)
       if (data.success === false) {
         return setErrorMessage(data.message);
       }
       if (res.ok) {
+        setUser(data.user);
         navigate('/dashboard');
       }
     } catch (error) {
