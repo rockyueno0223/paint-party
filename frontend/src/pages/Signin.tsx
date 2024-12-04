@@ -20,13 +20,14 @@ export const Signin = () => {
     }
     try {
       setErrorMessage(null);
-      const res = await fetch('/api/users/signin', {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(formData),
       });
       const data = await res.json();
+      console.log('data', data)
       if (data.success === false) {
         return setErrorMessage(data.message);
       }

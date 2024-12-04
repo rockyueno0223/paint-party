@@ -20,13 +20,15 @@ export const Signup = () => {
     }
     try {
       setErrorMessage(null);
-      const res = await fetch('/api/users/signup', {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify(formData),
       });
       const data = await res.json();
+      console.log('data', data);
+
       if (data.success === false) {
         return setErrorMessage(data.message);
       }
