@@ -158,8 +158,6 @@ export const CreateCanvas = () => {
       imageUrl: imageDataURL,
       email: user?.email,
     };
-    // test code
-    console.log('canvasData', canvasData);
 
     try {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/canvas/save`, {
@@ -169,8 +167,6 @@ export const CreateCanvas = () => {
         body: JSON.stringify(canvasData),
       });
       const data = await res.json();
-      // test code
-      console.log('data', data);
       if (data.success) {
         setShowToast(true);
         setIsSuccess(true);
