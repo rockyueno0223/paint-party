@@ -1,11 +1,12 @@
 import { Button } from "flowbite-react";
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { FaPen } from "react-icons/fa";
 import { FaRegCircle } from "react-icons/fa";
 import { RiEraserLine } from "react-icons/ri";
 
 export const CreateCanvas = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const canvasName = searchParams.get("name");
 
@@ -102,6 +103,37 @@ export const CreateCanvas = () => {
     ctx.strokeStyle = isEraser ? lineColor : "#FFFFFF"; // Use canvas background color for eraser
   };
 
+  const handleCreateCanvas = async () => {
+    const canvas = canvasRef.current!;
+    if (!canvas) return;
+
+    // Convert the canvas to a Base64 image URL
+    const imageDataURL = canvas.toDataURL("image/png");
+
+    const canvasData = {
+      name: canvasName,
+      image: imageDataURL,
+    };
+    // test code
+    console.log('canvasData', canvasData);
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/canvas`, {
+        method: "POST",
+        credentials: "include",
+        body: JSON.stringify(canvasData),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTimeout(() => navigate("/dashboard"), 2000);
+      } else {
+        console.error(data.message);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   return (
     <div className="flex flex-col items-center p-3">
       <h3 className="text-xl font-semibold my-3">{canvasName}</h3>
@@ -166,16 +198,31 @@ export const CreateCanvas = () => {
           </div>
         </div>
 
-        {/* Canvas */}
-        <div className="bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 p-0.5">
-          <canvas
-            ref={canvasRef}
-            className="w-full max-w-3xl h-auto bg-white cursor-crosshair"
-            onMouseDown={startDrawing}
-            onMouseMove={drawMouseMove}
-            onMouseUp={stopDrawing}
-            onMouseLeave={stopDrawing}
-          />
+        <div className="flex flex-col gap-3">
+          {/* Canvas */}
+          <div className="bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 p-0.5">
+            <canvas
+              ref={canvasRef}
+              className="w-full max-w-3xl h-auto bg-white cursor-crosshair"
+              onMouseDown={startDrawing}
+              onMouseMove={drawMouseMove}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+            />
+          </div>
+          {/* Buttons */}
+          <div className="flex flex-col gap-3">
+            <Button onClick={handleCreateCanvas} className="w-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500">
+              Save Canvas
+            </Button>
+            <Button
+              color="gray"
+              onClick={() => navigate('/dashboard')}
+              className="w-full"
+            >
+              Back to Dashboard
+            </Button>
+          </div>
         </div>
       </div>
     </div>
