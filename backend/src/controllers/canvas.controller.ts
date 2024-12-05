@@ -35,11 +35,12 @@ const getCanvasHistory = async (req: Request, res: Response) => {
             const canvasIds = canvasUsers.map(cu => cu.canvasId);
             const canvases: ICanvas[] = await Canvas.find({ _id: { $in: canvasIds } });
 
-            const canvasHistory = canvases.map(canvas => ({
-                canvasName: canvas.canvasName,
-                canvasURL: canvas.canvasURL
-            }));
-        console.log(canvasHistory)
+            const canvasHistory = canvases;
+        //     const canvasHistory = canvases.map(canvas => ({
+        //         canvasName: canvas.canvasName,
+        //         canvasURL: canvas.canvasURL
+        //     }));
+        // console.log(canvasHistory)
 
         res.status(200).json({ history: canvasHistory, success: true});
         } else {

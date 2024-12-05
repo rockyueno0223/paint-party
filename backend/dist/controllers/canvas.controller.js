@@ -35,11 +35,12 @@ const getCanvasHistory = (req, res) => __awaiter(void 0, void 0, void 0, functio
             const canvasUsers = yield canvasUser_model_1.CanvasUser.find({ userId });
             const canvasIds = canvasUsers.map(cu => cu.canvasId);
             const canvases = yield canvas_model_1.Canvas.find({ _id: { $in: canvasIds } });
-            const canvasHistory = canvases.map(canvas => ({
-                canvasName: canvas.canvasName,
-                canvasURL: canvas.canvasURL
-            }));
-            console.log(canvasHistory);
+            const canvasHistory = canvases;
+            //     const canvasHistory = canvases.map(canvas => ({
+            //         canvasName: canvas.canvasName,
+            //         canvasURL: canvas.canvasURL
+            //     }));
+            // console.log(canvasHistory)
             res.status(200).json({ history: canvasHistory, success: true });
         }
         else {
