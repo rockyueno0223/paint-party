@@ -164,6 +164,7 @@ export const CreateCanvas = () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/canvas/save`, {
         method: "POST",
+        headers: { 'Content-Type': 'application/json' },
         credentials: "include",
         body: JSON.stringify(canvasData),
       });
