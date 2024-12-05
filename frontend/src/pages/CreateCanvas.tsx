@@ -6,11 +6,14 @@ import { FaRegCircle } from "react-icons/fa";
 import { RiEraserLine } from "react-icons/ri";
 import { ToastComponent } from "@/components/ToastComponent";
 import { socket } from "@/socket/socket";
+import { useUserContext } from "@/context/UserContext";
 
 export const CreateCanvas = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
   const canvasName = searchParams.get("name");
+  const { user } = useUserContext();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
@@ -151,19 +154,22 @@ export const CreateCanvas = () => {
     const imageDataURL = canvas.toDataURL("image/png");
 
     const canvasData = {
-      name: canvasName,
-      image: imageDataURL,
+      canvasName,
+      imageUrl: imageDataURL,
+      email: user?.email,
     };
     // test code
     console.log('canvasData', canvasData);
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/canvas`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/canvas/save`, {
         method: "POST",
         credentials: "include",
         body: JSON.stringify(canvasData),
       });
       const data = await res.json();
+      // test code
+      console.log('data', data);
       if (data.success) {
         setShowToast(true);
         setIsSuccess(true);
@@ -183,8 +189,6 @@ export const CreateCanvas = () => {
 
         setTimeout(() => {
           setShowToast(false);
-          setIsSuccess(null);
-          setToastMessage(null);
         }, 3000);
       }
     } catch (error) {
@@ -195,8 +199,6 @@ export const CreateCanvas = () => {
 
       setTimeout(() => {
         setShowToast(false);
-        setIsSuccess(null);
-        setToastMessage(null);
       }, 3000);
     }
   }
