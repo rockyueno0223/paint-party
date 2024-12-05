@@ -17,10 +17,11 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 // Middleware
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:3000', 'http://localhost:4321'],
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
     credentials: true
 }));
 app.use(express_1.default.json());
+app.use(express_1.default.urlencoded({ extended: true }));
 // Routes
 app.use('/api/canvas', canvas_routes_1.default);
 app.use('/api/auth', auth_1.default);
