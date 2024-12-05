@@ -4,6 +4,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { FaPen } from "react-icons/fa";
 import { FaRegCircle } from "react-icons/fa";
 import { RiEraserLine } from "react-icons/ri";
+import { ToastComponent } from "@/components/ToastComponent";
 
 export const CreateCanvas = () => {
   const navigate = useNavigate();
@@ -17,6 +18,10 @@ export const CreateCanvas = () => {
   const [lineWidth, setLineWidth] = useState<number>(2);
   const [lineColor, setLineColor] = useState<string>("#000000");
   const [isEraser, setIsEraser] = useState<boolean>(false);
+
+  const [showToast, setShowToast] = useState<boolean>(false);
+  const [isSuccess, setIsSuccess] = useState<boolean | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -105,7 +110,18 @@ export const CreateCanvas = () => {
 
   const handleCreateCanvas = async () => {
     const canvas = canvasRef.current!;
-    if (!canvas) return;
+    if (!canvas) {
+      setShowToast(true);
+      setIsSuccess(false);
+      setToastMessage("Cannot get canvas data.");
+
+      setTimeout(() => {
+        setShowToast(false);
+        setIsSuccess(null);
+        setToastMessage(null);
+        return;
+      }, 3000);
+    }
 
     // Convert the canvas to a Base64 image URL
     const imageDataURL = canvas.toDataURL("image/png");
@@ -125,12 +141,39 @@ export const CreateCanvas = () => {
       });
       const data = await res.json();
       if (data.success) {
-        setTimeout(() => navigate("/dashboard"), 2000);
+        setShowToast(true);
+        setIsSuccess(true);
+        setToastMessage("Canvas saved successfully.");
+
+        setTimeout(() => {
+          setShowToast(false);
+          setIsSuccess(null);
+          setToastMessage(null);
+          navigate("/dashboard");
+        }, 3000);
       } else {
         console.error(data.message);
+        setShowToast(true);
+        setIsSuccess(false);
+        setToastMessage(data.message);
+
+        setTimeout(() => {
+          setShowToast(false);
+          setIsSuccess(null);
+          setToastMessage(null);
+        }, 3000);
       }
     } catch (error) {
       console.error(error);
+      setShowToast(true);
+      setIsSuccess(false);
+      setToastMessage("Something went wrong. Please try again.");
+
+      setTimeout(() => {
+        setShowToast(false);
+        setIsSuccess(null);
+        setToastMessage(null);
+      }, 3000);
     }
   }
 
@@ -225,6 +268,11 @@ export const CreateCanvas = () => {
           </div>
         </div>
       </div>
+      {showToast && isSuccess !== null && toastMessage && (
+        <div className="fixed bottom-5 right-5 z-50">
+          <ToastComponent isSuccess={isSuccess} message={toastMessage} />
+        </div>
+      )}
     </div>
   )
 }
