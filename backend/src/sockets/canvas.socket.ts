@@ -1,5 +1,4 @@
 import { Server, Socket } from 'socket.io';
-//import { Paint } from '../models/chat.model';
 
 const setupCanvasSocket = (io: Server) => {
     io.on('connection', (socket) => {
@@ -7,7 +6,13 @@ const setupCanvasSocket = (io: Server) => {
 
         socket.on('drawing', (data) => {
             socket.broadcast.emit('drawing', data);
-            // Here you can save the data to MongoDB if needed
+            const draingInfo = data
+            try {
+                // For room-based broadcast
+                io.to(data.room).emit('newDrawing', draingInfo)
+            } catch (error) {
+                console.error('Error saving chat:', error);
+            }
         });
 
         socket.on('addNewRoom', async (data) => {

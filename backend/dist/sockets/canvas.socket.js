@@ -9,13 +9,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-//import { Paint } from '../models/chat.model';
 const setupCanvasSocket = (io) => {
     io.on('connection', (socket) => {
         console.log('a user connected');
         socket.on('drawing', (data) => {
             socket.broadcast.emit('drawing', data);
-            // Here you can save the data to MongoDB if needed
+            const draingInfo = data;
+            try {
+                // For room-based broadcast
+                io.to(data.room).emit('newDrawing', draingInfo);
+            }
+            catch (error) {
+                console.error('Error saving chat:', error);
+            }
         });
         socket.on('addNewRoom', (data) => __awaiter(void 0, void 0, void 0, function* () {
             const roomInfo = data;

@@ -12,60 +12,75 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const user_model_1 = __importDefault(require("../models/user.model"));
+const canvas_model_1 = require("../models/canvas.model");
+const canvasUser_model_1 = require("../models/canvasUser.model");
+const cloudinary_util_1 = require("../utils/cloudinary.util");
+const path_1 = __importDefault(require("path"));
 // Get all chats
 const getCanvasHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.body;
     try {
-        const users = yield user_model_1.default.find().sort({ createdAt: -1 }); // Sort by createdAt field
-        res.status(200).json({ user: users, success: true });
+        //const canvasUsers = await CanvasUser.find({ userId: userId }).populate('canvasId')
+        const canvasUsers = yield canvasUser_model_1.CanvasUser.find({ userId });
+        const canvasIds = canvasUsers.map(cu => cu.canvasId);
+        const canvases = yield canvas_model_1.Canvas.find({ _id: { $in: canvasIds } });
+        const canvasHistory = canvases.map(canvas => ({
+            canvasName: canvas.canvasName,
+            canvasURL: canvas.canvasURL
+        }));
+        console.log(canvasHistory);
+        //res.status(200).json(canvasUsers)
+        res.status(200).json({ history: canvasHistory, success: true });
     }
     catch (error) {
-        res.status(500).json({ success: false, message: 'Error fetching users' });
+        res.status(500).json({ success: false, message: 'userId is invalid' });
     }
 });
-const getEnrollmentsByStudentId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // try {
-    //   const canvasUsers = await CanvasUser.find({ studentId: req.params.userId }).populate('courseId')
-    //   res.status(200).json(canvasUsers)
-    // } catch (err) {
-    //   console.error(err)
-    //   res.status(500).json({ error: 'Unable to get student\'s enrolments' })
+// Add property
+const addProperty = (canvasName) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const filePath = path_1.default.join(__dirname, `../../uploads/${canvasName}.png`);
+        const response = yield (0, cloudinary_util_1.uploadImage)(filePath, "paint-party");
+        return response;
+    }
+    catch (error) {
+        return error;
+    }
+    // upload image to cloudinary
+    // if (req.file) {
+    //     try {
+    //         imageUrl = await uploadImage(req.file.path, "property-management");
+    //     } catch (error) {
+    //         res.status(500).json({ success: false, message: (error as Error).message });
+    //         return;
+    //     }
     // }
-    // try {
-    //     const canvasUsers = await CanvasUser.find({ studentId: req.params.userId }).populate('canvasId');
-    //     const canvasDetails = canvasUsers.map((canvasUser) => {
-    //       return {
-    //         // canvasId: canvasUser.canvasId,
-    //         // canvasName: canvasUser.canvasId.canvasName,
-    //         // URL: canvasUser.canvasId.URL
-    //       };
-    //     });
-    //     console.log(canvasUsers)
-    //     //return canvasDetails;
-    //     return canvasUsers;
-    //   } catch (error) {
-    //     console.error('Error fetching canvas details:', error);
-    //     throw error;
-    //   }
 });
 const saveCanvas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // const saveUser = req.params.userId;
-    // const saveCanvasName = req.params.canvasName;
-    // const saveCanvasURL = req.params.canvasURL;
-    // try {
-    //     const canvas = new Canvas({ saveCanvasName, saveCanvasURL });
-    //     const savedCanvas = await canvas.save();
-    //     console.log('New user ID:', savedCanvas._id);
-    //     const saveCanvasId = savedCanvas._id;
-    //     const canvasUser = new CanvasUser({ saveCanvasId, saveUser });
-    //     await canvasUser.save();
-    //     res.status(201).json();
-    // } catch (error) {
-    //     console.error('Error fetching canvas details:', error);
-    //     throw error;
-    // }
+    const { userId, canvasName } = req.body;
+    try {
+        const filePath = path_1.default.join(__dirname, `../../uploads/${canvasName}.png`);
+        const canvasURL = yield (0, cloudinary_util_1.uploadImage)(filePath, "paint-party");
+        const canvas = new canvas_model_1.Canvas({ canvasName, canvasURL });
+        const savedCanvas = yield canvas.save();
+        const canvasIdString = savedCanvas._id.toString();
+        //console.log('New user ID:', canvasIdString);
+        const newCanvasUser = new canvasUser_model_1.CanvasUser({
+            canvasId: canvas._id,
+            userId: userId
+        });
+        yield newCanvasUser.save();
+        //const canvasUser = new CanvasUser({ canvasIdString, userId });
+        //await canvasUser.save();
+        res.status(201).json({ user: userId, success: true });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: error });
+    }
 });
 exports.default = {
     getCanvasHistory,
+    addProperty,
     saveCanvas
 };
