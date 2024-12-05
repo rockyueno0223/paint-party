@@ -17,6 +17,7 @@ export const Header = () => {
     try {
       const res = await fetch('/api/user/signout', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
       })
       const data = await res.json();
       if (!res.ok) {
