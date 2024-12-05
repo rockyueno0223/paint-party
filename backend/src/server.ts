@@ -28,7 +28,7 @@ app.use('/api/auth', authRouter);
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:4321', // Your frontend url here (Astro, React, vanilla HTML)
+        origin: 'http://localhost:5173', // Your frontend url here (Astro, React, vanilla HTML)
         methods: ["GET", "POST"]
     },
 });
