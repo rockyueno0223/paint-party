@@ -12,21 +12,39 @@ interface MulterRequest extends Request {
 
 // Get all chats
 const getCanvasHistory = async (req: Request, res: Response) => {
-    const { userId } = req.body;
+    const { email } = req.body;
     try {
         //const canvasUsers = await CanvasUser.find({ userId: userId }).populate('canvasId')
-        const canvasUsers: ICanvasUser[] = await CanvasUser.find({ userId });
-        const canvasIds = canvasUsers.map(cu => cu.canvasId);
-        const canvases: ICanvas[] = await Canvas.find({ _id: { $in: canvasIds } });
+        // const user: ICanvasUser[] = await User.find(
+        //     { email: email },
+        //     { _id: 1 }    
+        // );
 
-        const canvasHistory = canvases.map(canvas => ({
-            canvasName: canvas.canvasName,
-            canvasURL: canvas.canvasURL
-        }));
+        // const UserId = user[0]._id
+        // console.log(UserId)
+        // const canvasUsers: ICanvasUser[] = await CanvasUser.find({ UserId });
+
+        const user: ICanvasUser[] = await User.find(
+            { email: email },
+            { _id: 1 }
+        );
+        
+        if (user.length > 0) {
+            const userId = user[0]._id;
+            const canvasUsers: ICanvasUser[] = await CanvasUser.find({ userId });
+            const canvasIds = canvasUsers.map(cu => cu.canvasId);
+            const canvases: ICanvas[] = await Canvas.find({ _id: { $in: canvasIds } });
+
+            const canvasHistory = canvases.map(canvas => ({
+                canvasName: canvas.canvasName,
+                canvasURL: canvas.canvasURL
+            }));
         console.log(canvasHistory)
 
-        //res.status(200).json(canvasUsers)
         res.status(200).json({ history: canvasHistory, success: true});
+        } else {
+            res.status(500).json({ success: false, message: 'User not found' });
+        }
     } catch (error) {
         res.status(500).json({ success: false, message: 'userId is invalid' });
     }
@@ -55,33 +73,45 @@ const addProperty = async (canvasName : string) => {
     // }
 }
 const saveCanvas = async (req: Request<{ userId: string, canvasName: string }>, res: Response) => {
-    const { userId, canvasName } = req.body;
+    const { canvasName, imageUrl, email } = req.body;
 
     try {
-        const filePath = path.join(__dirname, `../../uploads/${canvasName}.png`);
+        //const filePath = path.join(__dirname, `../../uploads/${canvasName}.png`);
+        const filePath = imageUrl;
+        //console.log(filePath)
         const canvasURL = await uploadImage(filePath, "paint-party");
 
         const canvas = new Canvas({ canvasName, canvasURL });
         const savedCanvas = await canvas.save();
 
         const canvasIdString = (savedCanvas._id as mongoose.Types.ObjectId).toString();
-        //console.log('New user ID:', canvasIdString);
 
-        const newCanvasUser = new CanvasUser({
-            canvasId: canvas._id,
-            userId: userId
-        });
-
-        await newCanvasUser.save();
+        const user: ICanvasUser[] = await User.find(
+            { email: email },
+            { _id: 1 }
+        );
+        
+        if (user.length > 0) {
+            const userId = user[0]._id;
+            //console.log(userId)
+            const newCanvasUser = new CanvasUser({
+                canvasId: canvasIdString,
+                userId: userId
+            });
+    
+            await newCanvasUser.save();
+            res.status(201).json({ user: userId, success: true});
+        }else{
+            res.status(500).json({ success: false, message: 'userId is invalid' });
+        }
         
         //const canvasUser = new CanvasUser({ canvasIdString, userId });
         //await canvasUser.save();
 
-        res.status(201).json({ user: userId, success: true});
         
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: error});
+        res.status(500).json({ success: false, message: "Image saving failed"});
     }
 }
 
