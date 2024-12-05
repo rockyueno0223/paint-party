@@ -5,6 +5,7 @@ import { FaPen } from "react-icons/fa";
 import { FaRegCircle } from "react-icons/fa";
 import { RiEraserLine } from "react-icons/ri";
 import { ToastComponent } from "@/components/ToastComponent";
+import { socket } from "@/socket/socket";
 
 export const CreateCanvas = () => {
   const navigate = useNavigate();
@@ -35,6 +36,15 @@ export const CreateCanvas = () => {
     ctx.lineCap = "round";
     ctx.lineWidth = 2;
     ctx.strokeStyle = "#000000";
+
+    // Listen for drawing events from the server
+    socket.on("drawing", ({ x0, y0, x1, y1, color, width }) => {
+      draw(ctx, x0, y0, x1, y1, color, width);
+    });
+
+    return () => {
+      socket.off("drawing");
+    };
   }, []);
 
   useEffect(() => {
@@ -50,8 +60,12 @@ export const CreateCanvas = () => {
     x0: number,
     y0: number,
     x1: number,
-    y1: number
+    y1: number,
+    color: string,
+    width: number
   ) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
     ctx.beginPath();
     ctx.moveTo(x0, y0); // Start at the previous position
     ctx.lineTo(x1, y1); // Draw a line to the new position
@@ -90,7 +104,17 @@ export const CreateCanvas = () => {
     const ctx = canvas.getContext("2d")!;
 
     if (lastPosition) {
-      draw(ctx, lastPosition.x, lastPosition.y, x, y); // Draw from last position to current position
+      draw(ctx, lastPosition.x, lastPosition.y, x, y, lineColor, lineWidth); // Draw from last position to current position
+
+      // Emit the drawing event to the server
+      socket.emit("drawing", {
+        x0: lastPosition.x,
+        y0: lastPosition.y,
+        x1: x,
+        y1: y,
+        color: isEraser ? "#FFFFFF" : lineColor,
+        width: lineWidth,
+      });
     }
 
     setLastPosition({ x, y }); // Update the last position
