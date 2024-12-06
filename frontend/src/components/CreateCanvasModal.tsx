@@ -1,6 +1,7 @@
 import { Modal, Button, TextInput, Label, Alert } from "flowbite-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { socket } from "@/socket/socket";
 
 interface CreateCanvasModalProps {
   isModalOpen: boolean;
@@ -21,6 +22,11 @@ export const CreateCanvasModal: React.FC<CreateCanvasModalProps> = ({ isModalOpe
     }
     setCanvasName("");
     setModalOpen(false);
+    // Add new room and pass to web socket
+    socket.emit("addNewRoom", {
+      roomName: canvasName,
+      rooURL: `/dashboard/create-canvas?name=${encodeURIComponent(canvasName)}`
+    })
     navigate(
       `/dashboard/create-canvas?name=${encodeURIComponent(canvasName)}`
     );

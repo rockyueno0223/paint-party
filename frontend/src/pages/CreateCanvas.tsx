@@ -51,6 +51,14 @@ export const CreateCanvas = () => {
   }, []);
 
   useEffect(() => {
+    // Listen for joining room
+    socket.emit("join room", {
+      room: canvasName,
+      userName: user?.username
+    });
+  }, [user, canvasName])
+
+  useEffect(() => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
 
