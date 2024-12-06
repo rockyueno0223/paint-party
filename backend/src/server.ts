@@ -4,9 +4,10 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
 import canvasSocket from './sockets/canvas.socket';
 import canvasRouter from './routes/canvas.routes';
-import authRouter from './routes/auth';
+import userRouter from './routes/user.routes';
 dotenv.config();
 
 // Create server
@@ -17,12 +18,14 @@ app.use(cors({
     origin: ['http://localhost:3000', 'http://localhost:5173'],
     credentials: true
     }))
+
+app.use(cookieParser(process.env.COOKIE_SIGN_KEY));
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
 // Routes
 app.use('/api/canvas', canvasRouter);
-app.use('/api/auth', authRouter);
+app.use('/api/auth', userRouter);
 
 // Create HTTP server and attach Socket.IO
 const server = createServer(app);

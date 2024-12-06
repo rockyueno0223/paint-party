@@ -10,10 +10,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const setupCanvasSocket = (io) => {
+    const roomDrawings = {};
     io.on('connection', (socket) => {
         console.log('a user connected');
         socket.on('drawing', (data) => {
-            socket.broadcast.emit('drawing', data);
+            const { room, x0, y0, x1, y1, color, width } = data;
+            if (!roomDrawings[room]) {
+                roomDrawings[room] = [];
+            }
+            roomDrawings[room].push({ x0, y0, x1, y1, color, width });
+            // Broadcast to the specific room
+            socket.to(room).emit('drawing', data);
             const draingInfo = data;
             try {
                 // For room-based broadcast
@@ -33,11 +40,6 @@ const setupCanvasSocket = (io) => {
             const { username, message, room } = data;
             const draingInfo = data;
             try {
-                // Save message to MongoDB
-                //   const chat = new Chat({ username, message, room });
-                //   await chat.save();
-                // Broadcast the chat object to all connected clients via the newMessage event
-                //io.emit('newMessage', chat);
                 // For room-based broadcast
                 io.to(data.room).emit('newDrawing', draingInfo);
             }
@@ -46,13 +48,12 @@ const setupCanvasSocket = (io) => {
             }
         }));
         socket.on('join room', (data) => {
-            socket.join(data.room);
-            console.log(`${data.username} joined the room ${data.room}`);
-            io.to(data.room).emit('newMessage', {
-                message: `${data.username} joined the room ${data.room}`,
-                username: 'System',
-                room: data.room
-            });
+            const { room } = data;
+            socket.join(room);
+            // Send the current drawing state to the user
+            if (roomDrawings[room]) {
+                socket.emit('load canvas', roomDrawings[room]);
+            }
         });
         // Leaving a room
         socket.on('leave room', (data) => {
