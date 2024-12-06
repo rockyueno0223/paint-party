@@ -7,12 +7,14 @@ import { RiEraserLine } from "react-icons/ri";
 import { ToastComponent } from "@/components/ToastComponent";
 import { socket } from "@/socket/socket";
 import { useUserContext } from "@/context/UserContext";
+import { createSlug } from "@/utils/createSlug";
 
 export const CreateCanvas = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const canvasName = searchParams.get("name");
+  const creatorName = searchParams.get("creator");
   const { user } = useUserContext();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -26,6 +28,8 @@ export const CreateCanvas = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const usernameSlug = createSlug(user?.username || "Unknown User");
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -152,8 +156,6 @@ export const CreateCanvas = () => {
 
       setTimeout(() => {
         setShowToast(false);
-        setIsSuccess(null);
-        setToastMessage(null);
         return;
       }, 3000);
     }
@@ -286,9 +288,11 @@ export const CreateCanvas = () => {
           </div>
           {/* Buttons */}
           <div className="flex flex-col gap-3">
-            <Button onClick={handleCreateCanvas} className="w-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500">
-              Save Canvas
-            </Button>
+            {usernameSlug === creatorName && (
+              <Button onClick={handleCreateCanvas} className="w-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500">
+                Save Canvas
+              </Button>
+            )}
             <Button
               color="gray"
               onClick={() => navigate('/dashboard')}

@@ -2,6 +2,8 @@ import { Modal, Button, TextInput, Label, Alert } from "flowbite-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "@/socket/socket";
+import { useUserContext } from "@/context/UserContext";
+import { createSlug } from "@/utils/createSlug";
 
 interface CreateCanvasModalProps {
   isModalOpen: boolean;
@@ -10,6 +12,8 @@ interface CreateCanvasModalProps {
 
 export const CreateCanvasModal: React.FC<CreateCanvasModalProps> = ({ isModalOpen, setModalOpen }) => {
   const navigate = useNavigate();
+
+  const { user } = useUserContext();
 
   const [canvasName, setCanvasName] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
@@ -22,14 +26,25 @@ export const CreateCanvasModal: React.FC<CreateCanvasModalProps> = ({ isModalOpe
     }
     setCanvasName("");
     setModalOpen(false);
+
     // Add new room and pass to web socket
+    if (!user?.username) {
+      setError("Username is undefined. Cannot create canvas.")
+      return;
+    }
+    const creatorName = user?.username;
+    const creatorSlug = createSlug(creatorName);
+
+    const canvasSlug = createSlug(canvasName);
+
+    const url = `/dashboard/create-canvas?name=${encodeURIComponent(canvasSlug)}&creator=${encodeURIComponent(creatorSlug)}`;
+
     socket.emit("addNewRoom", {
       roomName: canvasName,
-      rooURL: `/dashboard/create-canvas?name=${encodeURIComponent(canvasName)}`
-    })
-    navigate(
-      `/dashboard/create-canvas?name=${encodeURIComponent(canvasName)}`
-    );
+      rooURL: url,
+      creator: creatorName
+    });
+    navigate(url);
   }
 
   const handleCloseModal = () => {
