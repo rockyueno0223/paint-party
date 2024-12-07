@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { CustomFlowbiteTheme } from "flowbite-react";
 import { useState } from "react";
 import { CreateCanvasModal } from "@/components/CreateCanvasModal";
+import { useUserContext } from "@/context/UserContext";
 
 const customTheme: CustomFlowbiteTheme["navbar"] = {
   "toggle": {
@@ -11,6 +12,8 @@ const customTheme: CustomFlowbiteTheme["navbar"] = {
 };
 
 export const Header = () => {
+  const { user } = useUserContext();
+
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
 
   const handleSignout = async () => {
@@ -41,31 +44,38 @@ export const Header = () => {
         <Navbar.Toggle />
 
         <Navbar.Collapse>
-          <Navbar.Link as={'div'}>
-            <Link to="/signin" className="text-white">Sign In</Link>
-          </Navbar.Link>
-          <Navbar.Link as={'div'}>
-            <Link to="/signup" className="text-white">Sign Up</Link>
-          </Navbar.Link>
-          <Navbar.Link as={'div'}>
-            <Link to="/dashboard" className="text-white">Dashboard</Link>
-          </Navbar.Link>
-          <Navbar.Link as={'div'}>
-            <span
-              onClick={() => setModalOpen(true)}
-              className="text-white cursor-pointer"
-            >
-              Create Modal
-            </span>
-          </Navbar.Link>
-          <Navbar.Link as={'div'}>
-            <span
-              onClick={handleSignout}
-              className="text-white cursor-pointer"
-            >
-              Sign Out
-            </span>
-          </Navbar.Link>
+          {user ?
+            <>
+              <Navbar.Link as={'div'}>
+                <Link to="/dashboard" className="text-white">Dashboard</Link>
+              </Navbar.Link>
+              <Navbar.Link as={'div'}>
+                <span
+                  onClick={() => setModalOpen(true)}
+                  className="text-white cursor-pointer"
+                >
+                  Create Modal
+                </span>
+              </Navbar.Link>
+              <Navbar.Link as={'div'}>
+                <span
+                  onClick={handleSignout}
+                  className="text-white cursor-pointer"
+                >
+                  Sign Out
+                </span>
+              </Navbar.Link>
+            </>
+            :
+            <>
+              <Navbar.Link as={'div'}>
+                <Link to="/signin" className="text-white">Sign In</Link>
+              </Navbar.Link>
+              <Navbar.Link as={'div'}>
+                <Link to="/signup" className="text-white">Sign Up</Link>
+              </Navbar.Link>
+            </>
+          }
         </Navbar.Collapse>
       </Navbar>
 

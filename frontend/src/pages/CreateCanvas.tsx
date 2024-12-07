@@ -7,12 +7,23 @@ import { RiEraserLine } from "react-icons/ri";
 import { ToastComponent } from "@/components/ToastComponent";
 import { socket } from "@/socket/socket";
 import { useUserContext } from "@/context/UserContext";
+import { createSlug } from "@/utils/createSlug";
+
+interface Drawing {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  color: string;
+  width: number;
+};
 
 export const CreateCanvas = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const canvasName = searchParams.get("name");
+  const creatorName = searchParams.get("creator");
   const { user } = useUserContext();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -27,6 +38,8 @@ export const CreateCanvas = () => {
   const [isSuccess, setIsSuccess] = useState<boolean | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const usernameSlug = createSlug(user?.username || "Unknown User");
+
   useEffect(() => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
@@ -40,12 +53,20 @@ export const CreateCanvas = () => {
     ctx.lineWidth = 2;
     ctx.strokeStyle = "#000000";
 
+    // Load existing canvas data
+    socket.on('load canvas', (drawings: Drawing[]) => {
+        drawings.forEach(({ x0, y0, x1, y1, color, width }) => {
+            draw(ctx, x0, y0, x1, y1, color, width);
+        });
+    });
+
     // Listen for drawing events from the server
     socket.on("drawing", ({ x0, y0, x1, y1, color, width }) => {
       draw(ctx, x0, y0, x1, y1, color, width);
     });
 
     return () => {
+      socket.off('load canvas');
       socket.off("drawing");
     };
   }, []);
@@ -56,6 +77,9 @@ export const CreateCanvas = () => {
       room: canvasName,
       userName: user?.username
     });
+    return () => {
+      socket.emit('leave room', { room: canvasName, userName: user?.username });
+    }
   }, [user, canvasName])
 
   useEffect(() => {
@@ -119,6 +143,7 @@ export const CreateCanvas = () => {
 
       // Emit the drawing event to the server
       socket.emit("drawing", {
+        room: canvasName,
         x0: lastPosition.x,
         y0: lastPosition.y,
         x1: x,
@@ -152,8 +177,6 @@ export const CreateCanvas = () => {
 
       setTimeout(() => {
         setShowToast(false);
-        setIsSuccess(null);
-        setToastMessage(null);
         return;
       }, 3000);
     }
@@ -286,9 +309,11 @@ export const CreateCanvas = () => {
           </div>
           {/* Buttons */}
           <div className="flex flex-col gap-3">
-            <Button onClick={handleCreateCanvas} className="w-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500">
-              Save Canvas
-            </Button>
+            {usernameSlug === creatorName && (
+              <Button onClick={handleCreateCanvas} className="w-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500">
+                Save Canvas
+              </Button>
+            )}
             <Button
               color="gray"
               onClick={() => navigate('/dashboard')}

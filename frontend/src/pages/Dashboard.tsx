@@ -3,6 +3,8 @@ import { useCanvasHistoryContext } from "@/context/CanvasHistoryContext";
 import { useUserContext } from "@/context/UserContext";
 import { useEffect, useState } from "react";
 import { socket } from "@/socket/socket";
+import { Link } from "react-router-dom";
+import { createSlug } from "@/utils/createSlug";
 
 export const Dashboard = () => {
   const { user } = useUserContext();
@@ -11,6 +13,7 @@ export const Dashboard = () => {
   const [rooms, setRooms] = useState<Array<{
     roomName: string;
     roomURL: string;
+    creator: string;
   }>>([]);
 
   useEffect(() => {
@@ -49,16 +52,24 @@ export const Dashboard = () => {
       <div className="">
         <h3 className="text-xl text-left font-semibold pl-3 my-4">Active Rooms</h3>
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {rooms ?
+          {rooms.length !== 0 ?
             <>
-              {rooms.map((room, index) => (
-                <a href={`http://localhost:5173/dashboard/create-canvas?name=${room.roomName}`} key={index} className="border border-zinc-400">
-                  {room.roomName}
-                </a>
-              ))}
+              {rooms.map((room, index) => {
+                const roomNameSlug = createSlug(room.roomName);
+                const creatorSlug = createSlug(room.creator);
+                return (
+                  <Link
+                    key={index}
+                    to={`/dashboard/create-canvas?name=${roomNameSlug}&creator=${creatorSlug}`}
+                    className="border border-zinc-400"
+                  >
+                    {room.roomName}
+                  </Link>
+                )
+              })}
             </>
           :
-            <p className="text-red-500 text-xl font-semibold text-center">
+            <p className="text-xl text-center">
               No Active Room
             </p>
           }
@@ -67,14 +78,14 @@ export const Dashboard = () => {
       <div className="">
         <h3 className="text-xl text-left font-semibold pl-3 my-4">Your Canvas</h3>
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {canvasHistory ?
+          {canvasHistory && canvasHistory?.length !== 0 ?
             <>
               {canvasHistory.map((canvas, index) => (
                 <CanvasCard key={index} canvas={canvas} />
             ))}
             </>
           :
-            <p className="text-red-500 text-xl font-semibold text-center">
+            <p className="text-xl text-center">
               No Canvas History
             </p>
           }
