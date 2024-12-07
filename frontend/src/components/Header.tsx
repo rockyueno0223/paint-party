@@ -1,9 +1,10 @@
 import { Navbar } from "flowbite-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { CustomFlowbiteTheme } from "flowbite-react";
 import { useState } from "react";
 import { CreateCanvasModal } from "@/components/CreateCanvasModal";
 import { useUserContext } from "@/context/UserContext";
+import { useCanvasHistoryContext } from "@/context/CanvasHistoryContext";
 
 const customTheme: CustomFlowbiteTheme["navbar"] = {
   "toggle": {
@@ -12,21 +13,26 @@ const customTheme: CustomFlowbiteTheme["navbar"] = {
 };
 
 export const Header = () => {
-  const { user } = useUserContext();
+  const navigate = useNavigate();
+
+  const { user, setUser } = useUserContext();
+  const { setCanvasHistory } = useCanvasHistoryContext();
 
   const [isModalOpen, setModalOpen] = useState<boolean>(false);
 
   const handleSignout = async () => {
     try {
-      const res = await fetch('/api/user/signout', {
-        method: 'POST',
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/logout`, {
+        method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })
       const data = await res.json();
       if (!res.ok) {
-        console.log(data.message);
+        console.error(data.message);
       } else {
-        // Logout action
+        setUser(null);
+        setCanvasHistory(null);
+        navigate('/signin')
       }
     } catch (error) {
       console.error((error as Error).message);
