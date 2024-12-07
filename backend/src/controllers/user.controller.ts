@@ -23,10 +23,22 @@ const registerUser = async (req: Request, res: Response, next: NextFunction): Pr
     }
 
     user = new User({ username, email, password });
-    await user.save();
+    const savedUser = await user.save();
+
+    res.cookie('isAuthenticated', true, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      signed: true,
+
+    });
+    res.cookie('email', savedUser.email.toString(), {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      signed: true,
+    });
 
     //const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '1h' });
-    res.status(201).json({ user: user, success: true});
+    res.status(201).json({ user: savedUser, success: true});
   } catch (error) {
     //next(error);
     res.status(500).json({ success: false, message: 'An unexpected error occurred' });
@@ -48,6 +60,19 @@ const loginUser = async (req: Request, res: Response, next: NextFunction): Promi
       res.status(400).json({ success: false, message: 'Invalid login credentials' });
       return;
     }
+    
+    res.cookie('isAuthenticated', true, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      signed: true,
+
+    });
+    res.cookie('email', user.email.toString(), {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      signed: true,
+
+    });
     //const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '1h' });
     res.status(200).json({ user: user, success: true});
   } catch (error) {
@@ -55,8 +80,28 @@ const loginUser = async (req: Request, res: Response, next: NextFunction): Promi
   }
 };
 
+// Logout user
+const logoutUser = async (req: Request, res: Response) => {
+  res.clearCookie('isAuthenticated', {
+    httpOnly: true,
+    signed: true
+  });
+  res.clearCookie('email', {
+    httpOnly: true,
+    signed: true
+  });
+  res.status(200).json({ success: true, message: 'User logged out successfully' });
+};
+
+// Check authentication
+const checkAuth = (req: Request, res: Response) => {
+  res.status(200).json({ success: true, message: 'Auth checked successful' });
+};
+
 export default {
   getAllUsers,
   registerUser,
-  loginUser
+  loginUser,
+  logoutUser,
+  checkAuth
 };
