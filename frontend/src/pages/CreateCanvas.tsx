@@ -9,6 +9,15 @@ import { socket } from "@/socket/socket";
 import { useUserContext } from "@/context/UserContext";
 import { createSlug } from "@/utils/createSlug";
 
+interface Drawing {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  color: string;
+  width: number;
+};
+
 export const CreateCanvas = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -44,12 +53,20 @@ export const CreateCanvas = () => {
     ctx.lineWidth = 2;
     ctx.strokeStyle = "#000000";
 
+    // Load existing canvas data
+    socket.on('load canvas', (drawings: Drawing[]) => {
+        drawings.forEach(({ x0, y0, x1, y1, color, width }) => {
+            draw(ctx, x0, y0, x1, y1, color, width);
+        });
+    });
+
     // Listen for drawing events from the server
     socket.on("drawing", ({ x0, y0, x1, y1, color, width }) => {
       draw(ctx, x0, y0, x1, y1, color, width);
     });
 
     return () => {
+      socket.off('load canvas');
       socket.off("drawing");
     };
   }, []);
@@ -60,6 +77,9 @@ export const CreateCanvas = () => {
       room: canvasName,
       userName: user?.username
     });
+    return () => {
+      socket.emit('leave room', { room: canvasName, userName: user?.username });
+    }
   }, [user, canvasName])
 
   useEffect(() => {
@@ -123,6 +143,7 @@ export const CreateCanvas = () => {
 
       // Emit the drawing event to the server
       socket.emit("drawing", {
+        room: canvasName,
         x0: lastPosition.x,
         y0: lastPosition.y,
         x1: x,
