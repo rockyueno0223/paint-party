@@ -139,7 +139,8 @@ export const CreateCanvas = () => {
     const ctx = canvas.getContext("2d")!;
 
     if (lastPosition) {
-      draw(ctx, lastPosition.x, lastPosition.y, x, y, lineColor, lineWidth); // Draw from last position to current position
+      const currentColor = isEraser ? "#FFFFFF" : lineColor;
+      draw(ctx, lastPosition.x, lastPosition.y, x, y, currentColor, lineWidth); // Draw from last position to current position
 
       // Emit the drawing event to the server
       socket.emit("drawing", {
@@ -160,13 +161,6 @@ export const CreateCanvas = () => {
     setLineWidth(width);
     setIsEraser(false);
   }
-
-  const toggleEraser = () => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
-    setIsEraser(!isEraser);
-    ctx.strokeStyle = isEraser ? lineColor : "#FFFFFF"; // Use canvas background color for eraser
-  };
 
   const handleCreateCanvas = async () => {
     const canvas = canvasRef.current!;
@@ -285,7 +279,7 @@ export const CreateCanvas = () => {
 
             {/* Eraser */}
             <Button
-              onClick={toggleEraser}
+              onClick={() => setIsEraser(!isEraser)}
               className={`flex items-center ${
                 isEraser ? "dark:bg-red-500 text-white" : "dark:bg-gray-200 text-zinc-600"
               }`}
