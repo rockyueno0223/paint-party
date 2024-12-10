@@ -3,10 +3,13 @@ import { useCanvasHistoryContext } from "@/context/CanvasHistoryContext";
 import { useUserContext } from "@/context/UserContext";
 import { useEffect, useState } from "react";
 import { socket } from "@/socket/socket";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { createSlug } from "@/utils/createSlug";
 
 export const Dashboard = () => {
+  const [searchParams] = useSearchParams();
+  const prevRoom = searchParams.get("roomName");
+
   const { user } = useUserContext();
   const { canvasHistory, setCanvasHistory } = useCanvasHistoryContext();
 
@@ -17,10 +20,14 @@ export const Dashboard = () => {
   }>>([]);
 
   useEffect(() => {
+    if (prevRoom) {
+      socket.emit('leave room', { room: prevRoom, username: user?.username });
+    }
     socket.on("newRoom", (data) => {
       setRooms((prevRooms) => [...prevRooms, data]);
     })
     return () => {
+      socket.off('leave room');
       socket.off("newRoom");
     };
   }, []);

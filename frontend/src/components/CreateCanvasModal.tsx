@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { socket } from "@/socket/socket";
 import { useUserContext } from "@/context/UserContext";
-import { createSlug } from "@/utils/createSlug";
 
 interface CreateCanvasModalProps {
   isModalOpen: boolean;
@@ -32,17 +31,13 @@ export const CreateCanvasModal: React.FC<CreateCanvasModalProps> = ({ isModalOpe
       setError("Username is undefined. Cannot create canvas.")
       return;
     }
-    const creatorName = user?.username;
-    const creatorSlug = createSlug(creatorName);
 
-    const canvasSlug = createSlug(canvasName);
-
-    const url = `/dashboard/create-canvas?name=${encodeURIComponent(canvasSlug)}&creator=${encodeURIComponent(creatorSlug)}`;
+    const url = `/dashboard/create-canvas?name=${encodeURIComponent(canvasName)}&creator=${encodeURIComponent(user.username)}`;
 
     socket.emit("addNewRoom", {
       roomName: canvasName,
       rooURL: url,
-      creator: creatorName
+      creator: user.username
     });
     navigate(url);
   }
