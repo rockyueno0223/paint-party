@@ -80,13 +80,16 @@ export const Dashboard = () => {
                 const roomNameSlug = createSlug(room.roomName);
                 const creatorSlug = createSlug(room.creator);
                 return (
-                  <Link
-                    key={index}
-                    to={`/dashboard/create-canvas?name=${roomNameSlug}&creator=${creatorSlug}`}
-                    className="border border-zinc-400"
-                  >
-                    {room.roomName}
-                  </Link>
+                  <div className="bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 p-px rounded-md hover:brightness-110">
+                    <Link
+                      key={index}
+                      to={`/dashboard/create-canvas?name=${roomNameSlug}&creator=${creatorSlug}`}
+                      className="rounded-md flex flex-col justify-between gap-6 p-3"
+                    >
+                      <p className="text-xl text-white">{room.roomName}</p>
+                      <p className="text-sm w-full text-right">{room.creator}</p>
+                    </Link>
+                  </div>
                 )
               })}
             </>
