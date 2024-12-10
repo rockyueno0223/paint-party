@@ -23,11 +23,27 @@ export const Dashboard = () => {
     if (prevRoom) {
       socket.emit('leave room', { room: prevRoom, username: user?.username });
     }
+
+    socket.emit('dashboard');
+
+    socket.on('load rooms', (data) => {
+      setRooms((prevRooms) => {
+        const combinedRooms = [...prevRooms, ...data];
+        return combinedRooms.filter(
+          (room, index, self) =>
+            index === self.findIndex((r) => r.roomName === room.roomName)
+        )
+      });
+    })
+
     socket.on("newRoom", (data) => {
       setRooms((prevRooms) => [...prevRooms, data]);
     })
+
     return () => {
       socket.off('leave room');
+      socket.off('dashboard');
+      socket.off('load rooms');
       socket.off("newRoom");
     };
   }, []);

@@ -14,6 +14,14 @@ const setupCanvasSocket = (io) => {
     // Socket
     io.on('connection', (socket) => {
         console.log('A new user connected');
+        // Called from dashboard page and send active rooms
+        socket.on('dashboard', () => {
+            socket.emit('load rooms', Object.keys(roomDrawings).map((roomName) => ({
+                roomName,
+                rooURL: `/dashboard/create-canvas?name=${roomName}&creator=${roomDrawings[roomName].creator}`,
+                creator: roomDrawings[roomName].creator,
+            })));
+        });
         // Add a new room
         socket.on('addNewRoom', (_a) => __awaiter(void 0, [_a], void 0, function* ({ roomName, rooURL, creator }) {
             // Create a new drawing data
