@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/user.model';
+import User from '../models/user.model';
 
-// Get all chats
+// Get all users
 const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.find().sort({ createdAt: -1 }); // Sort by createdAt field
@@ -12,13 +12,14 @@ const getAllUsers = async (req: Request, res: Response) => {
   }
 };
 
+// Add a new user
 const registerUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { username, email, password } = req.body;
 
   try {
     let user = await User.findOne({ email });
     if (user) {
-      res.status(400).json({ success: false, message: 'User already existss' });
+      res.status(400).json({ success: false, message: 'User already exists' });
       return;
     }
 
@@ -45,13 +46,14 @@ const registerUser = async (req: Request, res: Response, next: NextFunction): Pr
   }
 };
 
+// Login user
 const loginUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(400).json({ success: false, message: 'Invalid login credentials' });
+      res.status(400).json({ success: false, message: 'Email not found' });
       return;
     }
 
@@ -60,7 +62,7 @@ const loginUser = async (req: Request, res: Response, next: NextFunction): Promi
       res.status(400).json({ success: false, message: 'Invalid login credentials' });
       return;
     }
-    
+
     res.cookie('isAuthenticated', true, {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 1 day

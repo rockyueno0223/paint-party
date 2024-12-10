@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const user_model_1 = __importDefault(require("../models/user.model"));
-// Get all chats
+// Get all users
 const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const users = yield user_model_1.default.find().sort({ createdAt: -1 }); // Sort by createdAt field
@@ -23,12 +23,13 @@ const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         res.status(500).json({ success: false, message: 'Error fetching users' });
     }
 });
+// Add a new user
 const registerUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, email, password } = req.body;
     try {
         let user = yield user_model_1.default.findOne({ email });
         if (user) {
-            res.status(400).json({ success: false, message: 'User already existss' });
+            res.status(400).json({ success: false, message: 'User already exists' });
             return;
         }
         user = new user_model_1.default({ username, email, password });
@@ -51,12 +52,13 @@ const registerUser = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         res.status(500).json({ success: false, message: 'An unexpected error occurred' });
     }
 });
+// Login user
 const loginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
     try {
         const user = yield user_model_1.default.findOne({ email });
         if (!user) {
-            res.status(400).json({ success: false, message: 'Invalid login credentials' });
+            res.status(400).json({ success: false, message: 'Email not found' });
             return;
         }
         const isMatch = yield user.matchPassword(password);
