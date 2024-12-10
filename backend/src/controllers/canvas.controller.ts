@@ -5,26 +5,20 @@ import { CanvasUser, ICanvasUser } from '../models/canvasUser.model'
 import mongoose from "mongoose";
 import { uploadImage } from '../utils/cloudinary.util';
 
-// Get canvases by user id
-const getCanvasHistory = async (req: Request, res: Response) => {
-    const { email } = req.body;
+// Get canvas by user id
+const getCanvasByUserId = async (req: Request, res: Response) => {
+    const { userId } = req.params;
 
     try {
-        const user: ICanvasUser[] = await User.find(
-            { email: email },
-            { _id: 1 }
-        );
-
-        if (user.length > 0) {
-            const userId = user[0]._id;
-            const canvasUsers: ICanvasUser[] = await CanvasUser.find({ userId });
-            const canvasIds = canvasUsers.map(cu => cu.canvasId);
-            const canvasHistory: ICanvas[] = await Canvas.find({ _id: { $in: canvasIds } });
-
-            res.status(200).json({ history: canvasHistory, success: true});
-        } else {
-            res.status(500).json({ success: false, message: 'User not found' });
+        const canvasUsers: ICanvasUser[] = await CanvasUser.find({ userId });
+        if (canvasUsers.length === 0) {
+            res.status(200).json({ history: [], success: true });
+            return;
         }
+        const canvasIds = canvasUsers.map(cu => cu.canvasId);
+        const canvasHistory: ICanvas[] = await Canvas.find({ _id: { $in: canvasIds } });
+
+        res.status(200).json({ history: canvasHistory, success: true});
     } catch (error) {
         res.status(500).json({ success: false, message: 'userId is invalid' });
     }
@@ -67,6 +61,6 @@ const saveCanvas = async (req: Request, res: Response) => {
 }
 
 export default {
-    getCanvasHistory,
+    getCanvasByUserId,
     saveCanvas
 };

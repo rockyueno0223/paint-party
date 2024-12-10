@@ -16,21 +16,18 @@ const user_model_1 = __importDefault(require("../models/user.model"));
 const canvas_model_1 = require("../models/canvas.model");
 const canvasUser_model_1 = require("../models/canvasUser.model");
 const cloudinary_util_1 = require("../utils/cloudinary.util");
-// Get canvases by user id
-const getCanvasHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email } = req.body;
+// Get canvas by user id
+const getCanvasByUserId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.params;
     try {
-        const user = yield user_model_1.default.find({ email: email }, { _id: 1 });
-        if (user.length > 0) {
-            const userId = user[0]._id;
-            const canvasUsers = yield canvasUser_model_1.CanvasUser.find({ userId });
-            const canvasIds = canvasUsers.map(cu => cu.canvasId);
-            const canvasHistory = yield canvas_model_1.Canvas.find({ _id: { $in: canvasIds } });
-            res.status(200).json({ history: canvasHistory, success: true });
+        const canvasUsers = yield canvasUser_model_1.CanvasUser.find({ userId });
+        if (canvasUsers.length === 0) {
+            res.status(200).json({ history: [], success: true });
+            return;
         }
-        else {
-            res.status(500).json({ success: false, message: 'User not found' });
-        }
+        const canvasIds = canvasUsers.map(cu => cu.canvasId);
+        const canvasHistory = yield canvas_model_1.Canvas.find({ _id: { $in: canvasIds } });
+        res.status(200).json({ history: canvasHistory, success: true });
     }
     catch (error) {
         res.status(500).json({ success: false, message: 'userId is invalid' });
@@ -65,6 +62,6 @@ const saveCanvas = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.default = {
-    getCanvasHistory,
+    getCanvasByUserId,
     saveCanvas
 };

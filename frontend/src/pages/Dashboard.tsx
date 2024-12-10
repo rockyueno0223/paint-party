@@ -28,11 +28,10 @@ export const Dashboard = () => {
   useEffect(() => {
     const fetchCanvasHistory = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/canvas/history`, {
-          method: "POST",
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/canvas/${user?._id}`, {
+          method: "GET",
           headers: { 'Content-Type': 'application/json' },
           credentials: "include",
-          body: JSON.stringify({ email: user?.email }),
         });
         const data = await res.json();
         if (data.success) {

@@ -4,7 +4,7 @@ import upload from '../config/multer';
 
 const canvasRouter = express.Router();
 
-canvasRouter.post('/history', canvasController.getCanvasHistory);
 canvasRouter.post('/save', upload.single("image"), canvasController.saveCanvas);
+canvasRouter.get('/:userId', canvasController.getCanvasByUserId);
 
 export default canvasRouter;
