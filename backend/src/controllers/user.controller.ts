@@ -26,23 +26,23 @@ const registerUser = async (req: Request, res: Response, next: NextFunction): Pr
     user = new User({ username, email, password });
     const savedUser = await user.save();
 
-    res.cookie('isAuthenticated', true, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      signed: true,
+    const jwtSecretKey = process.env.JWT_SECRET_KEY;
+    if (!jwtSecretKey) {
+      throw new Error('JWT_SECRET_KEY is not defined in environment variables.');
+    }
 
-    });
-    res.cookie('email', savedUser.email.toString(), {
+    const token = jwt.sign({ userId: savedUser._id }, jwtSecretKey, { expiresIn: '1h' });
+
+    res.cookie('token', token, {
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
       signed: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
     });
 
-    //const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '1h' });
     res.status(201).json({ user: savedUser, success: true});
   } catch (error) {
-    //next(error);
-    res.status(500).json({ success: false, message: 'An unexpected error occurred' });
+    res.status(500).json({ success: false, message: 'Failed to register a user' });
   }
 };
 
@@ -63,35 +63,35 @@ const loginUser = async (req: Request, res: Response, next: NextFunction): Promi
       return;
     }
 
-    res.cookie('isAuthenticated', true, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      signed: true,
+    const jwtSecretKey = process.env.JWT_SECRET_KEY;
+    if (!jwtSecretKey) {
+      throw new Error('JWT_SECRET_KEY is not defined in environment variables.');
+    }
 
-    });
-    res.cookie('email', user.email.toString(), {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      signed: true,
+    const token = jwt.sign({ userId: user._id }, jwtSecretKey, { expiresIn: '1h' });
 
+    res.cookie('token', token, {
+      httpOnly: true,
+      signed: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
     });
-    //const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '1h' });
+
     res.status(200).json({ user: user, success: true});
   } catch (error) {
-    next(error);
+    res.status(500).json({ success: false, message: 'Failed to login a user' });
   }
 };
 
 // Logout user
 const logoutUser = async (req: Request, res: Response) => {
-  res.clearCookie('isAuthenticated', {
+  res.clearCookie('token', {
     httpOnly: true,
-    signed: true
+    signed: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
   });
-  res.clearCookie('email', {
-    httpOnly: true,
-    signed: true
-  });
+
   res.status(200).json({ success: true, message: 'User logged out successfully' });
 };
 

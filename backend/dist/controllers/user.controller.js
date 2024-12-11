@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const user_model_1 = __importDefault(require("../models/user.model"));
 // Get all users
 const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -34,22 +35,21 @@ const registerUser = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
         }
         user = new user_model_1.default({ username, email, password });
         const savedUser = yield user.save();
-        res.cookie('isAuthenticated', true, {
+        const jwtSecretKey = process.env.JWT_SECRET_KEY;
+        if (!jwtSecretKey) {
+            throw new Error('JWT_SECRET_KEY is not defined in environment variables.');
+        }
+        const token = jsonwebtoken_1.default.sign({ userId: savedUser._id }, jwtSecretKey, { expiresIn: '1h' });
+        res.cookie('token', token, {
             httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000, // 1 day
             signed: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'none',
         });
-        res.cookie('email', savedUser.email.toString(), {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000, // 1 day
-            signed: true,
-        });
-        //const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '1h' });
         res.status(201).json({ user: savedUser, success: true });
     }
     catch (error) {
-        //next(error);
-        res.status(500).json({ success: false, message: 'An unexpected error occurred' });
+        res.status(500).json({ success: false, message: 'Failed to register a user' });
     }
 });
 // Login user
@@ -66,32 +66,30 @@ const loginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             res.status(400).json({ success: false, message: 'Invalid login credentials' });
             return;
         }
-        res.cookie('isAuthenticated', true, {
+        const jwtSecretKey = process.env.JWT_SECRET_KEY;
+        if (!jwtSecretKey) {
+            throw new Error('JWT_SECRET_KEY is not defined in environment variables.');
+        }
+        const token = jsonwebtoken_1.default.sign({ userId: user._id }, jwtSecretKey, { expiresIn: '1h' });
+        res.cookie('token', token, {
             httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000, // 1 day
             signed: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'none',
         });
-        res.cookie('email', user.email.toString(), {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000, // 1 day
-            signed: true,
-        });
-        //const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '1h' });
         res.status(200).json({ user: user, success: true });
     }
     catch (error) {
-        next(error);
+        res.status(500).json({ success: false, message: 'Failed to login a user' });
     }
 });
 // Logout user
 const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.clearCookie('isAuthenticated', {
+    res.clearCookie('token', {
         httpOnly: true,
-        signed: true
-    });
-    res.clearCookie('email', {
-        httpOnly: true,
-        signed: true
+        signed: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'none',
     });
     res.status(200).json({ success: true, message: 'User logged out successfully' });
 });
