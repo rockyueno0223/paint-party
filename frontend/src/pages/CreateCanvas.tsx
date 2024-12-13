@@ -7,7 +7,6 @@ import { RiEraserLine } from "react-icons/ri";
 import { ToastComponent } from "@/components/ToastComponent";
 import { socket } from "@/socket/socket";
 import { useUserContext } from "@/context/UserContext";
-import { createSlug } from "@/utils/createSlug";
 
 interface Drawing {
   x0: number;
@@ -27,6 +26,8 @@ export const CreateCanvas = () => {
   const { user } = useUserContext();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const roomJoined = useRef(false);
+
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
   const [lastPosition, setLastPosition] = useState<{ x: number; y: number } | null>(null);
 
@@ -37,8 +38,6 @@ export const CreateCanvas = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const usernameSlug = createSlug(user?.username || "Unknown User");
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -72,15 +71,16 @@ export const CreateCanvas = () => {
   }, []);
 
   useEffect(() => {
-    // Listen for joining room
+    // Prevent multiple call
+    if (roomJoined.current) return;
+    // Call joining room
+    roomJoined.current = true;
+
     socket.emit("join room", {
       room: canvasName,
-      userName: user?.username
+      username: user?.username
     });
-    return () => {
-      socket.emit('leave room', { room: canvasName, userName: user?.username });
-    }
-  }, [user, canvasName])
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -201,7 +201,7 @@ export const CreateCanvas = () => {
           setShowToast(false);
           setIsSuccess(null);
           setToastMessage(null);
-          navigate("/dashboard");
+          navigate(`/dashboard?roomName=${canvasName}`);
         }, 3000);
       } else {
         console.error(data.message);
@@ -303,14 +303,14 @@ export const CreateCanvas = () => {
           </div>
           {/* Buttons */}
           <div className="flex flex-col gap-3">
-            {usernameSlug === creatorName && (
+            {user?.username === creatorName && (
               <Button onClick={handleCreateCanvas} className="w-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500">
                 Save Canvas
               </Button>
             )}
             <Button
               color="gray"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(`/dashboard?roomName=${canvasName}`)}
               className="w-full"
             >
               Back to Dashboard

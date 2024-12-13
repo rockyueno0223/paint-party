@@ -15,7 +15,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: [process.env.FRONTEND_URL!, 'http://localhost:5173'],
     credentials: true
     }))
 
@@ -31,7 +31,7 @@ app.use('/api/auth', userRouter);
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:5173', // Your frontend url here (Astro, React, vanilla HTML)
+        origin: [process.env.FRONTEND_URL!, 'http://localhost:5173'],
         methods: ["GET", "POST"]
     },
 });
@@ -39,7 +39,7 @@ const io = new Server(server, {
 // Connect to MongoDB and start server
 const MONGO_URI = process.env.DATABASE_URL!
 mongoose
-    .connect(MONGO_URI, { dbName: 'paint-paty' })
+    .connect(MONGO_URI, { dbName: 'paintpartydb' })
     .then(() => {
         console.log('Connected to MongoDB database');
 

@@ -18,7 +18,7 @@ dotenv_1.default.config();
 const app = (0, express_1.default)();
 // Middleware
 app.use((0, cors_1.default)({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: [process.env.FRONTEND_URL, 'http://localhost:5173'],
     credentials: true
 }));
 app.use((0, cookie_parser_1.default)(process.env.COOKIE_SIGN_KEY));
@@ -31,14 +31,14 @@ app.use('/api/auth', user_routes_1.default);
 const server = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(server, {
     cors: {
-        origin: 'http://localhost:5173', // Your frontend url here (Astro, React, vanilla HTML)
+        origin: [process.env.FRONTEND_URL, 'http://localhost:5173'],
         methods: ["GET", "POST"]
     },
 });
 // Connect to MongoDB and start server
 const MONGO_URI = process.env.DATABASE_URL;
 mongoose_1.default
-    .connect(MONGO_URI, { dbName: 'paint-paty' })
+    .connect(MONGO_URI, { dbName: 'paintpartydb' })
     .then(() => {
     console.log('Connected to MongoDB database');
     // Start Socket.IO

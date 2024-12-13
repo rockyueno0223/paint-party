@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/user.model';
+import User from '../models/user.model';
 
-// Get all chats
+// Get all users
 const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.find().sort({ createdAt: -1 }); // Sort by createdAt field
@@ -12,46 +12,48 @@ const getAllUsers = async (req: Request, res: Response) => {
   }
 };
 
+// Add a new user
 const registerUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { username, email, password } = req.body;
 
   try {
     let user = await User.findOne({ email });
     if (user) {
-      res.status(400).json({ success: false, message: 'User already existss' });
+      res.status(400).json({ success: false, message: 'User already exists' });
       return;
     }
 
     user = new User({ username, email, password });
     const savedUser = await user.save();
 
-    res.cookie('isAuthenticated', true, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      signed: true,
+    const jwtSecretKey = process.env.JWT_SECRET_KEY;
+    if (!jwtSecretKey) {
+      throw new Error('JWT_SECRET_KEY is not defined in environment variables.');
+    }
 
-    });
-    res.cookie('email', savedUser.email.toString(), {
+    const token = jwt.sign({ userId: savedUser._id }, jwtSecretKey, { expiresIn: '1h' });
+
+    res.cookie('token', token, {
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
       signed: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
     });
 
-    //const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '1h' });
     res.status(201).json({ user: savedUser, success: true});
   } catch (error) {
-    //next(error);
-    res.status(500).json({ success: false, message: 'An unexpected error occurred' });
+    res.status(500).json({ success: false, message: 'Failed to register a user' });
   }
 };
 
+// Login user
 const loginUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(400).json({ success: false, message: 'Invalid login credentials' });
+      res.status(400).json({ success: false, message: 'Email not found' });
       return;
     }
 
@@ -60,36 +62,36 @@ const loginUser = async (req: Request, res: Response, next: NextFunction): Promi
       res.status(400).json({ success: false, message: 'Invalid login credentials' });
       return;
     }
-    
-    res.cookie('isAuthenticated', true, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      signed: true,
 
-    });
-    res.cookie('email', user.email.toString(), {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-      signed: true,
+    const jwtSecretKey = process.env.JWT_SECRET_KEY;
+    if (!jwtSecretKey) {
+      throw new Error('JWT_SECRET_KEY is not defined in environment variables.');
+    }
 
+    const token = jwt.sign({ userId: user._id }, jwtSecretKey, { expiresIn: '1h' });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      signed: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'none',
     });
-    //const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'default_secret', { expiresIn: '1h' });
+
     res.status(200).json({ user: user, success: true});
   } catch (error) {
-    next(error);
+    res.status(500).json({ success: false, message: 'Failed to login a user' });
   }
 };
 
 // Logout user
 const logoutUser = async (req: Request, res: Response) => {
-  res.clearCookie('isAuthenticated', {
+  res.clearCookie('token', {
     httpOnly: true,
-    signed: true
+    signed: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
   });
-  res.clearCookie('email', {
-    httpOnly: true,
-    signed: true
-  });
+
   res.status(200).json({ success: true, message: 'User logged out successfully' });
 };
 

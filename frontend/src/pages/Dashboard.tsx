@@ -3,10 +3,13 @@ import { useCanvasHistoryContext } from "@/context/CanvasHistoryContext";
 import { useUserContext } from "@/context/UserContext";
 import { useEffect, useState } from "react";
 import { socket } from "@/socket/socket";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { createSlug } from "@/utils/createSlug";
 
 export const Dashboard = () => {
+  const [searchParams] = useSearchParams();
+  const prevRoom = searchParams.get("roomName");
+
   const { user } = useUserContext();
   const { canvasHistory, setCanvasHistory } = useCanvasHistoryContext();
 
@@ -17,10 +20,30 @@ export const Dashboard = () => {
   }>>([]);
 
   useEffect(() => {
+    if (prevRoom) {
+      socket.emit('leave room', { room: prevRoom, username: user?.username });
+    }
+
+    socket.emit('dashboard');
+
+    socket.on('load rooms', (data) => {
+      setRooms((prevRooms) => {
+        const combinedRooms = [...prevRooms, ...data];
+        return combinedRooms.filter(
+          (room, index, self) =>
+            index === self.findIndex((r) => r.roomName === room.roomName)
+        )
+      });
+    })
+
     socket.on("newRoom", (data) => {
       setRooms((prevRooms) => [...prevRooms, data]);
     })
+
     return () => {
+      socket.off('leave room');
+      socket.off('dashboard');
+      socket.off('load rooms');
       socket.off("newRoom");
     };
   }, []);
@@ -28,11 +51,10 @@ export const Dashboard = () => {
   useEffect(() => {
     const fetchCanvasHistory = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/canvas/history`, {
-          method: "POST",
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/canvas/${user?._id}`, {
+          method: "GET",
           headers: { 'Content-Type': 'application/json' },
           credentials: "include",
-          body: JSON.stringify({ email: user?.email }),
         });
         const data = await res.json();
         if (data.success) {
@@ -58,13 +80,16 @@ export const Dashboard = () => {
                 const roomNameSlug = createSlug(room.roomName);
                 const creatorSlug = createSlug(room.creator);
                 return (
-                  <Link
-                    key={index}
-                    to={`/dashboard/create-canvas?name=${roomNameSlug}&creator=${creatorSlug}`}
-                    className="border border-zinc-400"
-                  >
-                    {room.roomName}
-                  </Link>
+                  <div className="bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 p-px rounded-md hover:brightness-110">
+                    <Link
+                      key={index}
+                      to={`/dashboard/create-canvas?name=${roomNameSlug}&creator=${creatorSlug}`}
+                      className="rounded-md flex flex-col justify-between gap-6 p-3"
+                    >
+                      <p className="text-xl text-white">{room.roomName}</p>
+                      <p className="text-sm w-full text-right">{room.creator}</p>
+                    </Link>
+                  </div>
                 )
               })}
             </>
