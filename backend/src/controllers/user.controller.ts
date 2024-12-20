@@ -6,7 +6,12 @@ import User from '../models/user.model';
 const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await User.find().sort({ createdAt: -1 }); // Sort by createdAt field
-    res.status(200).json({ user: users, success: true});
+    const usersObject = users.map(user => {
+      const userObject = user.toObject();
+      const { password, ...rest } = userObject;
+      return rest;
+    } );
+    res.status(200).json({ user: usersObject, success: true});
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error fetching users' });
   }
@@ -40,7 +45,10 @@ const registerUser = async (req: Request, res: Response, next: NextFunction): Pr
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
 
-    res.status(201).json({ user: savedUser, success: true});
+    const userObject = savedUser.toObject();
+    const { password: userPassword, ...rest } = userObject;
+
+    res.status(201).json({ user: rest, success: true});
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to register a user' });
   }
@@ -77,7 +85,10 @@ const loginUser = async (req: Request, res: Response, next: NextFunction): Promi
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
 
-    res.status(200).json({ user: user, success: true});
+    const userObject = user.toObject();
+    const { password: userPassword, ...rest } = userObject;
+
+    res.status(200).json({ user: rest, success: true});
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to login a user' });
   }
