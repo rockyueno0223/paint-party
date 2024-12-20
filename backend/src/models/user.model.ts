@@ -1,14 +1,27 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 
+export interface IUserPlain {
+    _id: mongoose.Types.ObjectId;
+    username: string;
+    email: string;
+    password?: string;
+}
+
 export interface IUser extends Document {
+    _id: mongoose.Types.ObjectId;
     username: string;
     email: string;
     password: string;
-    matchPassword: (enteredPassword: string) => Promise<boolean>;
 }
 
-const userSchema: Schema<IUser> = new Schema(
+export interface IUserMethods {
+  matchPassword(enteredPassword: string): Promise<boolean>;
+}
+
+export interface IUserModel extends Model<IUser, {}, IUserMethods> {}
+
+const userSchema: Schema<IUser, IUserModel> = new Schema(
     {
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
@@ -17,7 +30,7 @@ const userSchema: Schema<IUser> = new Schema(
     { timestamps: true }
 );
 
-userSchema.pre<IUser>('save', async function (next) {
+userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
         return next();
     }
@@ -30,5 +43,5 @@ userSchema.methods.matchPassword = async function (enteredPassword: string) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const User: Model<IUser> = mongoose.model('User', userSchema);
+const User: IUserModel = mongoose.model<IUser, IUserModel>('User', userSchema);
 export default User;

@@ -4,6 +4,7 @@ import { IUser } from '@/types/user';
 interface UserContextType {
   user: IUser | null;
   setUser: React.Dispatch<React.SetStateAction<IUser | null>>;
+  loading: boolean;
 }
 
 export const UserContext = createContext<UserContextType | undefined>(undefined);
