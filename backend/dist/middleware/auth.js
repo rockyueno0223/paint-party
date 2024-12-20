@@ -43,7 +43,8 @@ const cookieAuthCheck = (req, res, next) => __awaiter(void 0, void 0, void 0, fu
             res.status(404).json({ success: false, message: 'User not found' });
             return;
         }
-        const { password } = user, rest = __rest(user, ["password"]);
+        const userObject = user.toObject();
+        const { password } = userObject, rest = __rest(userObject, ["password"]);
         req.user = rest;
         next();
     }

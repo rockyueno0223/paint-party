@@ -1,6 +1,13 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 
+export interface IUserPlain {
+    _id: mongoose.Types.ObjectId;
+    username: string;
+    email: string;
+    password?: string;
+}
+
 export interface IUser extends Document {
     _id: mongoose.Types.ObjectId;
     username: string;

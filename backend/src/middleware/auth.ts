@@ -23,8 +23,11 @@ export const cookieAuthCheck = async (req: Request, res: Response, next: NextFun
       res.status(404).json({ success: false, message: 'User not found' });
       return;
     }
-    const { password, ...rest } = user;
+
+    const userObject = user.toObject();
+    const { password, ...rest } = userObject;
     req.user = rest;
+
     next();
   } catch (error) {
     res.status(403).json({ success: false, message: 'Unauthorized: Invalid or expired token' });
