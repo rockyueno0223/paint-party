@@ -37,7 +37,7 @@ const registerUser = async (req: Request, res: Response, next: NextFunction): Pr
       httpOnly: true,
       signed: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
 
     res.status(201).json({ user: savedUser, success: true});
@@ -74,7 +74,7 @@ const loginUser = async (req: Request, res: Response, next: NextFunction): Promi
       httpOnly: true,
       signed: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
 
     res.status(200).json({ user: user, success: true});
@@ -89,7 +89,7 @@ const logoutUser = async (req: Request, res: Response) => {
     httpOnly: true,
     signed: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'none',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
 
   res.status(200).json({ success: true, message: 'User logged out successfully' });
@@ -97,7 +97,7 @@ const logoutUser = async (req: Request, res: Response) => {
 
 // Check authentication
 const checkAuth = (req: Request, res: Response) => {
-  res.status(200).json({ success: true, message: 'Auth checked successful' });
+  res.status(200).json({ success: true, user: req.user });
 };
 
 export default {

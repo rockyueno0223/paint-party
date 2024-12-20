@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface ICanvas extends Document {
+    _id: mongoose.Types.ObjectId
     canvasURL: string
     canvasName: string
 }

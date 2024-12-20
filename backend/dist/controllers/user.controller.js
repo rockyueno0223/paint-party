@@ -44,7 +44,7 @@ const registerUser = (req, res, next) => __awaiter(void 0, void 0, void 0, funct
             httpOnly: true,
             signed: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         });
         res.status(201).json({ user: savedUser, success: true });
     }
@@ -75,7 +75,7 @@ const loginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             httpOnly: true,
             signed: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         });
         res.status(200).json({ user: user, success: true });
     }
@@ -89,13 +89,13 @@ const logoutUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         httpOnly: true,
         signed: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'none',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
     res.status(200).json({ success: true, message: 'User logged out successfully' });
 });
 // Check authentication
 const checkAuth = (req, res) => {
-    res.status(200).json({ success: true, message: 'Auth checked successful' });
+    res.status(200).json({ success: true, user: req.user });
 };
 exports.default = {
     getAllUsers,
